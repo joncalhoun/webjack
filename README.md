@@ -8,7 +8,6 @@ Usage looks like this:
 func main() {
 	server := NewServer()
 	http.Handle("/websockets", server.GetHandler())
-	http.Handle("/", http.FileServer(http.Dir("public")))
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 ```
