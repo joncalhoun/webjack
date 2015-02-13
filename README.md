@@ -5,6 +5,10 @@ A simple websocket server for go that supports channels.
 Usage looks like this:
 
 ```go
+import (
+  "github.com/joncalhoun/webjack"
+)
+
 func main() {
 	server := NewServer()
 	http.Handle("/websockets", server.GetHandler())
