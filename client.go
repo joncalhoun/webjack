@@ -21,10 +21,10 @@ func NewClient(ws *websocket.Conn) *Client {
 	return &Client{maxClientId, ws}
 }
 
-func (n *Client) Send(msg interface{}) error {
-	return websocket.JSON.Send(n.ws, &msg)
+func (self *Client) Send(msg interface{}) error {
+	return websocket.JSON.Send(self.ws, &msg)
 }
 
-func (n *Client) Receive(msg interface{}) error {
-	return websocket.JSON.Receive(n.ws, msg)
+func (self *Client) Receive(msg interface{}) error {
+	return websocket.JSON.Receive(self.ws, msg)
 }

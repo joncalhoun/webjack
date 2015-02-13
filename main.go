@@ -25,15 +25,10 @@ func PingSockets(s *Server) {
 		time.Sleep(5 * time.Second)
 
 		msg := PingMessage{
-			Message: fmt.Sprintf("%d connections!", len(s.clients)),
+			Message: fmt.Sprintf("%d connections!", s.Connections()),
 		}
 		log.Printf("Sending: %+v\n", msg)
 
-		for _, c := range s.clients {
-			err := c.Send(&msg)
-			if err != nil {
-				log.Println(err)
-			}
-		}
+		s.SendAll(msg)
 	}
 }

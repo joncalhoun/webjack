@@ -2,43 +2,74 @@ package main
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"fmt"
 	"io"
 	"log"
+	"net/url"
 )
 
 type Server struct {
-	clients map[int]*Client
+	channels    map[string]*Channel
+	connections int
 }
 
 func NewServer() *Server {
 	return &Server{
-		make(map[int]*Client),
+		make(map[string]*Channel),
+		0,
 	}
 }
 
-func (s *Server) RemoveClient(c *Client) {
-	delete(s.clients, c.id)
+func (self *Server) AddClient(c *Client, ch string) {
+	if self.channels[ch] == nil {
+		self.channels[ch] = NewChannel()
+	}
+	self.channels[ch].AddClient(c)
+	self.connections++
 }
 
-func (s *Server) AddClient(c *Client) {
-	s.clients[c.id] = c
+func (self *Server) RemoveClient(c *Client, ch string) {
+	self.channels[ch].RemoveClient(c)
+	self.connections--
 }
 
-func (s *Server) SendAll(msg interface{}) {
-	fmt.Printf("Send all with %+v\n", msg)
-	for _, c := range s.clients {
-		err := c.Send(msg)
-		if err != nil {
-			fmt.Printf("Error sending to client #%d: %s\n", c.id, err)
+func (self *Server) SendAll(msg interface{}) {
+	log.Printf("Send to all channels with %+v\n", msg)
+	for chName, _ := range self.channels {
+		self.SendChannel(msg, chName)
+	}
+}
+
+func (self *Server) SendChannel(msg interface{}, ch string) {
+	if self.channels[ch] != nil {
+		log.Printf("Sending %+v to channel %s\n", msg, ch)
+		self.channels[ch].SendAll(msg)
+	}
+}
+
+func (self *Server) Connections() int {
+	return self.connections
+}
+
+func getChannelName(ws *websocket.Conn) string {
+	u, err := url.Parse(ws.LocalAddr().String())
+	if err == nil {
+		v := u.Query()
+		if val, ok := v["name"]; ok {
+			if len(val) > 0 {
+				return val[0]
+			}
 		}
 	}
+
+	// Base channel
+	return ""
 }
 
-func (s *Server) GetHandler() websocket.Handler {
+func (self *Server) GetHandler() websocket.Handler {
 	onConnect := func(ws *websocket.Conn) {
 		c := NewClient(ws)
-		s.AddClient(c)
+		ch := getChannelName(ws)
+		self.AddClient(c, ch)
 
 		for {
 			select {
@@ -47,13 +78,13 @@ func (s *Server) GetHandler() websocket.Handler {
 				err := c.Receive(&msg)
 				if err == io.EOF {
 					log.Printf("Removing client #%d\n", c.id)
-					s.RemoveClient(c)
+					self.RemoveClient(c, ch)
 					return
 				} else if err != nil {
 					log.Println(err)
 				} else {
 					log.Printf("Received from client #%d: %+v\n", c.id, msg)
-					s.SendAll(msg)
+					self.SendChannel(msg, ch)
 				}
 			}
 		}
