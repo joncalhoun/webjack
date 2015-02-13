@@ -1,4 +1,4 @@
-package main
+package webjack
 
 import (
 	"code.google.com/p/go.net/websocket"
