@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	server := NewServer()
-	http.Handle("/websockets", server.GetHandler())
-	log.Fatal(http.ListenAndServe(":3000", nil))
+  server := NewServer()
+  http.Handle("/websockets", server.GetHandler())
+  log.Fatal(http.ListenAndServe(":3000", nil))
 }
 ```
 
