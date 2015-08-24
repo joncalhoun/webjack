@@ -2,7 +2,6 @@ package webjack
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"io"
 	"log"
 	"net/url"
 )
@@ -54,13 +53,13 @@ func getChannelName(ws *websocket.Conn) string {
 	u, err := url.Parse(ws.LocalAddr().String())
 	if err == nil {
 		v := u.Query()
-		if val, ok := v["name"]; ok {
+		if val, ok := v["channel"]; ok {
 			if len(val) > 0 {
 				return val[0]
 			}
 		}
 	}
-
+	log.Println("Failed to find a channel. Using base channel of empty string.")
 	// Base channel
 	return ""
 }
@@ -72,20 +71,13 @@ func (self *Server) GetHandler() websocket.Handler {
 		self.AddClient(c, ch)
 
 		for {
-			select {
-			default:
-				var msg interface{}
-				err := c.Receive(&msg)
-				if err == io.EOF {
-					log.Printf("Removing client #%d\n", c.id)
-					self.RemoveClient(c, ch)
-					return
-				} else if err != nil {
-					log.Println(err)
-				} else {
-					log.Printf("Received from client #%d: %+v\n", c.id, msg)
-					self.SendChannel(msg, ch)
-				}
+			msg, exit := c.Listen()
+			if exit {
+				log.Printf("Removing client #%d\n", c.id)
+				self.RemoveClient(c, ch)
+				return
+			} else if msg != nil {
+				self.SendChannel(msg, ch)
 			}
 		}
 	}

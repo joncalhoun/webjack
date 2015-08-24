@@ -25,7 +25,7 @@ And then in your javascript:
 
 ```javascript
 <script>
-  var connection = new WebSocket("ws://localhost:3000/websockets?name=" + encodeURIComponent("your-channel-name"));
+  var connection = new WebSocket("ws://localhost:3000/websockets?channel=" + encodeURIComponent("your-channel-name"));
   connection.onmessage = function(e) {
     // Do stuff with msg
     var json = JSON.parse(e.data);
