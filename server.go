@@ -1,9 +1,10 @@
 package webjack
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"log"
 	"net/url"
+
+	"code.google.com/p/go.net/websocket"
 )
 
 type Server struct {
@@ -16,6 +17,18 @@ func NewServer() *Server {
 		make(map[string]*Channel),
 		0,
 	}
+}
+
+func (self *Server) NumConnections() int {
+	return self.connections
+}
+
+func (self *Server) ConnectionsPerChannel() map[string]int {
+	ret := make(map[string]int)
+	for name, ch := range self.channels {
+		ret[name] = ch.NumClients()
+	}
+	return ret
 }
 
 func (self *Server) AddClient(c *Client, ch string) {

@@ -14,6 +14,10 @@ func NewChannel() *Channel {
 	}
 }
 
+func (self *Channel) NumClients() int {
+	return len(self.clients)
+}
+
 func (self *Channel) RemoveClient(c *Client) {
 	delete(self.clients, c.id)
 }
